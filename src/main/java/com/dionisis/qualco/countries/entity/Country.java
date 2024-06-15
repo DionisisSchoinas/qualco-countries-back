@@ -6,6 +6,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -35,5 +36,8 @@ public class Country {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "region_id", nullable = false)
     private Region region;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "country")
+    private List<CountryLanguage> countryLanguage;
 
 }

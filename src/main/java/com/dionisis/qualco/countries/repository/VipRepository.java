@@ -1,7 +1,7 @@
 package com.dionisis.qualco.countries.repository;
 
 import com.dionisis.qualco.countries.entity.Vip;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface VipRepository extends CrudRepository<Vip, Integer> {
+public interface VipRepository extends JpaRepository<Vip, Integer> {
 }
