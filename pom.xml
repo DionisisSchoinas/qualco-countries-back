@@ -10,7 +10,7 @@
 	</parent>
 
 	<groupId>com.dionisis.qualco.countries</groupId>
-	<artifactId>countries</artifactId>
+	<artifactId>back</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>countries</name>
 	<description>Spring Boot Rest API for Countries</description>
