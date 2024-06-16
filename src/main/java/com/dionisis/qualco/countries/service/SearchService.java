@@ -6,7 +6,6 @@ import com.dionisis.qualco.countries.entity.*;
 import com.dionisis.qualco.countries.mapper.CountryMapper;
 import com.dionisis.qualco.countries.mapper.LanguageMapper;
 import com.dionisis.qualco.countries.repository.CountryLanguageRepository;
-import com.dionisis.qualco.countries.repository.CountryRepository;
 import com.dionisis.qualco.countries.repository.RegionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,16 +25,14 @@ public class SearchService {
 
     private final CountryMapper countryMapper;
     private final LanguageMapper languageMapper;
-    private final CountryRepository countryRepository;
     private final CountryLanguageRepository countryLanguageRepository;
     private final RegionRepository regionRepository;
 
     @Autowired
-    public SearchService(EntityManager em, CountryMapper countryMapper, LanguageMapper languageMapper, CountryRepository countryRepository, CountryLanguageRepository countryLanguageRepository, RegionRepository regionRepository) {
+    public SearchService(EntityManager em, CountryMapper countryMapper, LanguageMapper languageMapper, CountryLanguageRepository countryLanguageRepository, RegionRepository regionRepository) {
         this.em = em;
         this.countryMapper = countryMapper;
         this.languageMapper = languageMapper;
-        this.countryRepository = countryRepository;
         this.countryLanguageRepository = countryLanguageRepository;
         this.regionRepository = regionRepository;
     }
@@ -55,7 +52,7 @@ public class SearchService {
         Root<Country> root = criteriaQuery.from(Country.class);
 
         TypedQuery<Country> tq = em.createQuery(criteriaQuery.select(root).orderBy(cb.asc(root.get(Country_.name))));
-        tq.setFirstResult(pageRequest.getPage());
+        tq.setFirstResult(pageRequest.getPage() * pageRequest.getSize());
         tq.setMaxResults(pageRequest.getSize());
 
         List<Country> countries = tq.getResultList();
@@ -92,7 +89,7 @@ public class SearchService {
         );
 
         TypedQuery<CountryGdpDto> tq = em.createQuery(cq.orderBy(cb.asc(root.get(Country_.name))));
-        tq.setFirstResult(pageRequest.getPage());
+        tq.setFirstResult(pageRequest.getPage() * pageRequest.getSize());
         tq.setMaxResults(pageRequest.getSize());
 
         List<CountryGdpDto> countries = tq.getResultList();
@@ -100,8 +97,58 @@ public class SearchService {
         return new PageImpl<>(countries, PageRequest.of(pageRequest.getPage(), pageRequest.getSize()), count);
     }
 
-    public List<RegionTableStatsDto> getCountryStatsTable(CountryStatsParamsDto paramsDto) {
-        return regionRepository.getCountryStatsTable(paramsDto.getRegionId());
+    public Page<RegionTableStatsDto> getCountryStatsTable(CountryStatsParamsDto paramsDto) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<Region> countRoot = countQuery.from(Region.class);
+        Join<Country, CountryStat> countJoin = countRoot.join(Region_.countries, JoinType.INNER).join(Country_.countryStats, JoinType.INNER);
+        countQuery
+                .select(cb.count(countJoin))
+                .where(constructPredicate(cb, countRoot, countJoin,paramsDto));
+        Long count = em.createQuery(countQuery).getSingleResult();
+
+        if (count == 0) {
+            return new PageImpl<>(new ArrayList<>(), PageRequest.of(paramsDto.getPage(), paramsDto.getSize()), 0);
+        }
+
+        CriteriaQuery<RegionTableStatsDto> criteriaQuery = cb.createQuery(RegionTableStatsDto.class);
+        Root<Region> root = criteriaQuery.from(Region.class);
+        Join<Region, Country> countryJoin = root.join(Region_.countries, JoinType.INNER);
+        Join<Country, CountryStat> countryStatJoin = countryJoin.join(Country_.countryStats, JoinType.INNER);
+
+        CriteriaQuery<RegionTableStatsDto> cq = criteriaQuery.multiselect(
+                root.join(Region_.continent).get(Continent_.name),
+                root.get(Region_.name),
+                countryJoin.get(Country_.name),
+                countryStatJoin.get(CountryStat_.id).get(CountryStatId_.year),
+                countryStatJoin.get(CountryStat_.population),
+                countryStatJoin.get(CountryStat_.gdp)
+        );
+        cq = cq.where(constructPredicate(cb, root, countryStatJoin, paramsDto));
+
+        TypedQuery<RegionTableStatsDto> tq = em.createQuery(cq.orderBy(cb.asc(root.get(Region_.name))));
+        tq.setFirstResult(paramsDto.getPage() * paramsDto.getSize());
+        tq.setMaxResults(paramsDto.getSize());
+
+        List<RegionTableStatsDto> countries = tq.getResultList();
+
+        return new PageImpl<>(countries, PageRequest.of(paramsDto.getPage(), paramsDto.getSize()), count);
+    }
+
+    private Predicate constructPredicate(CriteriaBuilder cb, Root<Region> root, Join<Country, CountryStat> join, CountryStatsParamsDto paramsDto) {
+        Predicate predicate = cb.conjunction();
+        if (paramsDto.getRegionId() != null) {
+            predicate = cb.and(predicate, cb.equal(root.get(Region_.id), paramsDto.getRegionId()));
+        }
+
+        if (paramsDto.getDateFrom() != null) {
+            predicate = cb.and(predicate, cb.greaterThanOrEqualTo(join.get(CountryStat_.id).get(CountryStatId_.year), paramsDto.getDateFrom().getYear()));
+        }
+
+        if (paramsDto.getDateTo() != null) {
+            predicate = cb.and(predicate, cb.lessThanOrEqualTo(join.get(CountryStat_.id).get(CountryStatId_.year), paramsDto.getDateTo().getYear()));
+        }
+        return predicate;
     }
 
     public List<RegionDto> getAllRegions() {

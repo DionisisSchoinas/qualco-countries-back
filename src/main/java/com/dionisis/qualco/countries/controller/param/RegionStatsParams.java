@@ -9,4 +9,6 @@ public class RegionStatsParams {
     private Integer regionId;
     private LocalDate dateFrom;
     private LocalDate dateTo;
+    private int page;
+    private int size;
 }

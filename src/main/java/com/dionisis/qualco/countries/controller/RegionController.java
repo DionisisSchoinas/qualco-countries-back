@@ -7,6 +7,7 @@ import com.dionisis.qualco.countries.dto.RegionDto;
 import com.dionisis.qualco.countries.mapper.CountryStatsParamsMapper;
 import com.dionisis.qualco.countries.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class RegionController {
     }
 
     @PostMapping
-    public List<RegionTableStatsDto> getCountryStatsTable(@RequestBody RegionStatsParams regionStatsParams) {
+    public Page<RegionTableStatsDto> getCountryStatsTable(@RequestBody RegionStatsParams regionStatsParams) {
         CountryStatsParamsDto paramsDto = countryStatsParamsMapper.map(regionStatsParams);
         return searchService.getCountryStatsTable(paramsDto);
     }
