@@ -2,28 +2,21 @@ package com.dionisis.qualco.countries.service;
 
 import com.dionisis.qualco.countries.controller.param.PaginationRequest;
 import com.dionisis.qualco.countries.dto.*;
-import com.dionisis.qualco.countries.entity.Country;
-import com.dionisis.qualco.countries.entity.Country_;
-import com.dionisis.qualco.countries.entity.Language;
+import com.dionisis.qualco.countries.entity.*;
 import com.dionisis.qualco.countries.mapper.CountryMapper;
 import com.dionisis.qualco.countries.mapper.LanguageMapper;
 import com.dionisis.qualco.countries.repository.CountryLanguageRepository;
 import com.dionisis.qualco.countries.repository.CountryRepository;
 import com.dionisis.qualco.countries.repository.RegionRepository;
-import org.hibernate.query.criteria.internal.OrderImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
-import javax.persistence.OrderBy;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,8 +44,7 @@ public class SearchService {
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-        countQuery.select(
-                cb.count(countQuery.from(Country.class)));
+        countQuery.select(cb.count(countQuery.from(Country.class)));
         Long count = em.createQuery(countQuery).getSingleResult();
 
         if (count == 0) {
@@ -76,8 +68,36 @@ public class SearchService {
         return languageMapper.map(languages);
     }
 
-    public List<CountryGdpDto> getGdpStatsForCountry() {
-        return countryRepository.getGdpStatsForCountry();
+    public Page<CountryGdpDto> getGdpStatsForCountry(PaginationRequest pageRequest) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        countQuery.select(cb.count(countQuery.from(Country.class).join(Country_.countryStats, JoinType.INNER)));
+        Long count = em.createQuery(countQuery).getSingleResult();
+
+        if (count == 0) {
+            return new PageImpl<>(new ArrayList<>(), PageRequest.of(pageRequest.getPage(), pageRequest.getSize()), 0);
+        }
+
+        CriteriaQuery<CountryGdpDto> criteriaQuery = cb.createQuery(CountryGdpDto.class);
+        Root<Country> root = criteriaQuery.from(Country.class);
+        Join<Country, CountryStat> join = root.join(Country_.countryStats, JoinType.INNER);
+        CriteriaQuery<CountryGdpDto> cq = criteriaQuery.multiselect(
+                root.get(Country_.id),
+                root.get(Country_.name),
+                root.get(Country_.countryCode3),
+                join.get(CountryStat_.id).get(CountryStatId_.year),
+                join.get(CountryStat_.population),
+                join.get(CountryStat_.gdp)
+        );
+
+        TypedQuery<CountryGdpDto> tq = em.createQuery(cq.orderBy(cb.asc(root.get(Country_.name))));
+        tq.setFirstResult(pageRequest.getPage());
+        tq.setMaxResults(pageRequest.getSize());
+
+        List<CountryGdpDto> countries = tq.getResultList();
+
+        return new PageImpl<>(countries, PageRequest.of(pageRequest.getPage(), pageRequest.getSize()), count);
     }
 
     public List<RegionTableStatsDto> getCountryStatsTable(CountryStatsParamsDto paramsDto) {

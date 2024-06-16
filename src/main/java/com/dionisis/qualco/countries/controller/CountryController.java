@@ -32,8 +32,8 @@ public class CountryController {
         return searchService.getSpokenLanguages(countryId);
     }
 
-    @GetMapping("/gdp")
-    public List<CountryGdpDto> getGdpStats() {
-        return searchService.getGdpStatsForCountry();
+    @PostMapping("/gdp")
+    public Page<CountryGdpDto> getGdpStats(@RequestBody PaginationRequest pageRequest) {
+        return searchService.getGdpStatsForCountry(pageRequest);
     }
 }
