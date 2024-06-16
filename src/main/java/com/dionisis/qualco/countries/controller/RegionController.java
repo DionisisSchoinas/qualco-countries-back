@@ -1,8 +1,8 @@
 package com.dionisis.qualco.countries.controller;
 
-import com.dionisis.qualco.countries.controller.param.CountryStatsParams;
+import com.dionisis.qualco.countries.controller.param.RegionStatsParams;
 import com.dionisis.qualco.countries.dto.CountryStatsParamsDto;
-import com.dionisis.qualco.countries.dto.CountryTableStatsDto;
+import com.dionisis.qualco.countries.dto.RegionTableStatsDto;
 import com.dionisis.qualco.countries.dto.RegionDto;
 import com.dionisis.qualco.countries.mapper.CountryStatsParamsMapper;
 import com.dionisis.qualco.countries.service.SearchService;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/regions")
@@ -31,8 +30,8 @@ public class RegionController {
     }
 
     @PostMapping
-    public List<CountryTableStatsDto> getCountryStatsTable(@RequestBody CountryStatsParams countryStatsParams) {
-        CountryStatsParamsDto paramsDto = countryStatsParamsMapper.map(countryStatsParams);
+    public List<RegionTableStatsDto> getCountryStatsTable(@RequestBody RegionStatsParams regionStatsParams) {
+        CountryStatsParamsDto paramsDto = countryStatsParamsMapper.map(regionStatsParams);
         return searchService.getCountryStatsTable(paramsDto);
     }
 }

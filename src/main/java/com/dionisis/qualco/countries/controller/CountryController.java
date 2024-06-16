@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/counties")
+@RequestMapping(value = "/countries")
 public class CountryController {
 
     private final SearchService searchService;
@@ -33,8 +33,8 @@ public class CountryController {
         return searchService.getSpokenLanguages(countryId);
     }
 
-    @GetMapping("/{countryId}/gdp")
-    public List<CountryGdpDto> getGdpStats(@PathVariable(name = "countryId") Integer countryId) {
-        return searchService.getGdpStatsForCountry(countryId);
+    @GetMapping("/gdp")
+    public List<CountryGdpDto> getGdpStats() {
+        return searchService.getGdpStatsForCountry();
     }
 }

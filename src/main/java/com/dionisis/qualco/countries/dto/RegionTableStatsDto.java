@@ -5,7 +5,7 @@ import lombok.Value;
 import java.math.BigDecimal;
 
 @Value
-public class CountryTableStatsDto {
+public class RegionTableStatsDto {
     String continentName;
     String regionName;
     String countryName;

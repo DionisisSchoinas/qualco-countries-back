@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 
 @Value
 public class CountryGdpDto {
+    Integer id;
     String name;
     String countryCode3;
     Integer year;

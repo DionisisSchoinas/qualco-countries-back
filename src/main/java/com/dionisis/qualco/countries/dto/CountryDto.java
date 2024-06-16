@@ -10,8 +10,5 @@ public class CountryDto {
     Integer id;
     String name;
     BigDecimal area;
-    LocalDate nationalDay;
     String countryCode2;
-    String countryCode3;
-    RegionDto region;
 }

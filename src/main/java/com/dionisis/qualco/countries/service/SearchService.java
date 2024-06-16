@@ -11,9 +11,7 @@ import com.dionisis.qualco.countries.repository.RegionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class SearchService {
@@ -42,11 +40,11 @@ public class SearchService {
         return languageMapper.map(languages);
     }
 
-    public List<CountryGdpDto> getGdpStatsForCountry(Integer countryId) {
-        return countryRepository.getGdpStatsForCountry(countryId);
+    public List<CountryGdpDto> getGdpStatsForCountry() {
+        return countryRepository.getGdpStatsForCountry();
     }
 
-    public List<CountryTableStatsDto> getCountryStatsTable(CountryStatsParamsDto paramsDto) {
+    public List<RegionTableStatsDto> getCountryStatsTable(CountryStatsParamsDto paramsDto) {
         return regionRepository.getCountryStatsTable(paramsDto.getRegionId());
     }
 
