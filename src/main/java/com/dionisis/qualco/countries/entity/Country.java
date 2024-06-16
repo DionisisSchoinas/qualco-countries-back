@@ -40,4 +40,6 @@ public class Country {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "country")
     private List<CountryLanguage> countryLanguage;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "country")
+    private List<CountryStat> countryStats;
 }

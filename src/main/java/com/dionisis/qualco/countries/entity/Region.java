@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,5 +22,8 @@ public class Region {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "continent_id", nullable = false)
     private Continent continent;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "region")
+    private List<Country> countries;
 
 }

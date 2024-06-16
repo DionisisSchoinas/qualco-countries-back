@@ -6,5 +6,4 @@ import lombok.Value;
 public class RegionDto {
     Integer id;
     String name;
-    ContinentDto continent;
 }
